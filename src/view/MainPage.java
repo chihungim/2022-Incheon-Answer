@@ -17,7 +17,7 @@ public class MainPage extends BasePage {
 	JPanel chart;
 	Thread thread;
 
-	double totalValue = toInt(getRows("select count(*) from purchase where date(date) <= '2022-08-31'").get(0).get(0));
+	double totalValue = toInt(getRows("select count(*) from user").get(0).get(0));
 
 	int max = toInt(getRows(
 			"select count(*), month(date) from purchase where month(date) >= 1 and month(date) <= month(now()) group by month(date) order by count(*) desc")
