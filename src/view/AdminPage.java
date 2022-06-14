@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
@@ -124,6 +125,13 @@ public class AdminPage extends BasePage {
 		};
 		JTable t = new JTable(m);
 
+		class CustomJLabel extends JLabel {
+			FileInputStream stream;
+			public CustomJLabel(ImageIcon icon) {
+				super(icon);
+			}
+		}
+
 		public Building() {
 			super(new BorderLayout());
 			add(new JScrollPane(t));
@@ -138,8 +146,7 @@ public class AdminPage extends BasePage {
 					var byteArr = new ByteArrayOutputStream();
 					try {
 						ImageIO.write(buff, "jpg", byteArr);
-
-						setRows("update building set name=?, info=?, open=?, close=?, img = ? where no=?",
+						setRows("update building set name= ?, info= ?, open= ?, close= ?, img = ? where no = ?",
 								t.getValueAt(i, 0), t.getValueAt(i, 2), t.getValueAt(i, 3), t.getValueAt(i, 4),
 								new ByteArrayInputStream(byteArr.toByteArray()), t.getValueAt(i, 6));
 					} catch (Exception e1) {
@@ -180,7 +187,7 @@ public class AdminPage extends BasePage {
 				m.addRow(rs.toArray());
 			}
 
-			t.addMouseListener(new MouseAdapter() {
+			t.addMouseListener(new MouseAdapter() {	
 				@Override
 				public void mousePressed(MouseEvent e) {
 					if (e.getButton() != 1 || t.getSelectedRow() == -1 || t.getSelectedColumn() != 5) {

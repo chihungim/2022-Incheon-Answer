@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.time.LocalDate;
+import java.util.ArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,8 +32,22 @@ public class MainPage extends BasePage {
 		add(c = new JPanel(new BorderLayout(5, 5)));
 		add(s = new JPanel(new GridLayout(1, 0, 5, 5)), "South");
 
-		var lst = getRows(
-				"select count(*), month(date) from purchase where month(date) >= 1 and month(date) <= month(now()) group by month(date) order by month(date)");
+		String sql = "select * from";
+
+		var now = LocalDate.now().minusMonths(5);
+
+		var l = new ArrayList<String>();
+		for (int i = 0; i < 6; i++) {
+			var pivot = "select "+now.getMonthValue()+", count(*) from purchase where date <= now() and month(date) = '"
+					+ now.getMonthValue() + "' and year(date) = '" + now.getYear() + "'";
+			l.add(pivot);
+			now = now.plusMonths(1);
+		}
+
+		sql += "(" + String.join(" union all ", l) + ") a";
+
+
+		var lst = getRows(sql);
 
 		c.add(chart = new JPanel() {
 			@Override
@@ -44,16 +60,16 @@ public class MainPage extends BasePage {
 				g2.setColor(Color.GRAY);
 				g2.drawString("월간 접종자 추이", 5, 20);
 				for (int i = 0; i < lst.size(); i++) {
-					var myHeight = (int) (toInt(lst.get(i).get(0)) / (double) max * maxHeight);
+					var myHeight = (int) (toInt(lst.get(i).get(1)) / (double) max * maxHeight);
 					if (myHeight > curHeight)
 						myHeight = curHeight;
 					g2.setColor(Color.GRAY);
-					g2.drawString(lst.get(i).get(0).toString(), 45 + i * 120, 320 - myHeight);
-					g2.drawString(lst.get(i).get(1).toString() + "월", 40 + i * 120, 350);
+					g2.drawString(lst.get(i).get(1).toString(), 135 + i * 120, 320 - myHeight);
+					g2.drawString(lst.get(i).get(0).toString() + "월", 130 + i * 120, 350);
 					g2.setColor(Color.ORANGE);
-					g2.fillRect(30 + i * 120, 330 - myHeight, 50, myHeight);
+					g2.fillRect(120 + i * 120, 330 - myHeight, 50, myHeight);
 					g2.setColor(Color.BLACK);
-					g2.drawRect(30 + i * 120, 330 - myHeight, 50, myHeight);
+					g2.drawRect(120 + i * 120, 330 - myHeight, 50, myHeight);
 				}
 			}
 		});
