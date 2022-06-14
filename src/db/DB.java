@@ -22,7 +22,7 @@ public class DB {
 	static TrayIcon icon = new TrayIcon(img);
 
 	String cascade = "ON UPDATE CASCADE ON DELETE CASCADE";
-	
+
 	static {
 		try {
 			con = DriverManager.getConnection(
@@ -74,17 +74,19 @@ public class DB {
 		execute("use covid");
 
 		create("building",
-				"no int primary key not null auto_increment, name varchar(20), open time, close time, info text, type int, x int, y int, img longblob");
+				"no int primary key not null auto_increment, name text, open time, close time, info text, type int, x int, y int, img longblob");
 		create("connection",
 				"node1 int, node2 int, name text, foreign key(node1) references building(no), foreign key(node2) references building(no)");
 		create("user",
-				"no int primary key not null auto_increment, name varchar(20), id varchar(10), pw varchar(20), phone varchar(30), birth date, building int, foreign key(building) references building(no)");
+				"no int primary key not null auto_increment, name varchar(20), id varchar(20), pw varchar(20), phone varchar(30), birth date, building int, foreign key(building) references building(no)");
 		create("vaccine", "no int primary key auto_increment, name varchar(20), price int");
 		create("rate",
-				"no int primary key auto_increment, building int, rate int, user int, review text, foreign key(building) references building(no), foreign key(user) references user(no) "+cascade);
+				"no int primary key auto_increment, building int, rate int, user int, review text, foreign key(building) references building(no), foreign key(user) references user(no) "
+						+ cascade);
 		create("purchase",
-				"no int primary key not null auto_increment, user int, `date` datetime, building int, vaccine int, shot int, foreign key(user) references user(no) "+cascade+", foreign key(building) references building(no), foreign key(vaccine) references vaccine(no)");
-		create("infection", "no int primary key not null auto_increment, date datetime");
+				"no int primary key not null auto_increment, user int, `date` datetime, building int, vaccine int, shot int, foreign key(user) references user(no) "
+						+ cascade
+						+ ", foreign key(building) references building(no), foreign key(vaccine) references vaccine(no)");
 
 		try {
 			var pst = con.prepareStatement("update building set img = ? where no = ?");
