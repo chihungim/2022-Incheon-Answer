@@ -39,7 +39,6 @@ public class InfoDialog extends JDialog {
 			{ BasePage.lbl("전화번호", JLabel.LEFT, 15) }, { txt[1] }, { BasePage.lbl("백신", JLabel.LEFT, 15) },
 			{ combo[0] }, { BasePage.lbl("예약 날짜 및 시간", JLabel.LEFT, 15) }, { txt[2], combo[1] }, };
 	SearchPage searchPage;
-	boolean is시설 = false;
 
 	public InfoDialog(ArrayList<Object> building) {
 		this.building = building;
@@ -65,46 +64,43 @@ public class InfoDialog extends JDialog {
 				btn1.setText("닫기");
 			}
 		}));
-		is시설 = BasePage.toInt(building.get(5)) == 0 || BasePage.toInt(building.get(5)) == 1;
 
-		if (is시설) {
-			s.add(BasePage.btn("예약하기", a -> {
-				if (!reserv.isVisible()) {
-					pages.show(c, "예약");
-					btn1.setText("뒤로가기");
-				} else {
+		s.add(BasePage.btn("예약하기", a -> {
+			if (!reserv.isVisible()) {
+				pages.show(c, "예약");
+				btn1.setText("뒤로가기");
+			} else {
 
-					if (txt[2].getText().isEmpty()) {
-						BasePage.eMsg("날짜를 선택해주세요.");
-						return;
-					}
-
-					if (BasePage.toInt(BasePage.getRow("select  count(*)  from purchase where user = ?", BasePage.uno)
-							.get(0)) == 4) {
-						BasePage.eMsg("이미 모든 접종을 완료하셨습니다.");
-						return;
-					}
-
-					BasePage.setRows("insert purchase values(0, ?, ?, ?, ?, ?)", BasePage.uno,
-							txt[2].getText() + " " + combo[1].getSelectedItem(), building.get(0),
-							combo[0].getSelectedIndex() + 1,
-							BasePage.toInt(BasePage
-									.getRow("select  count(*)  from purchase where user = ?", BasePage.uno).get(0))
-									+ 1);
-					var lbl = BasePage.lbl("예약이 완료되었습니다.", JLabel.LEFT);
-					var evtlbl = BasePage.hyplbl("<html><font color = rgb(0,123,255)>지도에서 보기", JLabel.LEFT, 13, (e) -> {
-						JOptionPane.getRootFrame().dispose();
-						searchPage.gotoCenter(BasePage.toInt(building.get(6)), BasePage.toInt(building.get(7)));
-					});
-
-					JPanel temp = new JPanel(new GridLayout(0, 1));
-					temp.add(lbl);
-					temp.add(evtlbl);
-					JOptionPane.showMessageDialog(this, temp, "확인", JOptionPane.INFORMATION_MESSAGE);
-					dispose();
+				if (txt[2].getText().isEmpty()) {
+					BasePage.eMsg("날짜를 선택해주세요.");
+					return;
 				}
-			}));
-		}
+
+				if (BasePage.toInt(
+						BasePage.getRow("select  count(*)  from purchase where user = ?", BasePage.uno).get(0)) == 4) {
+					BasePage.eMsg("이미 모든 접종을 완료하셨습니다.");
+					return;
+				}
+
+				BasePage.setRows("insert purchase values(0, ?, ?, ?, ?, ?)", BasePage.uno,
+						txt[2].getText() + " " + combo[1].getSelectedItem(), building.get(0),
+						combo[0].getSelectedIndex() + 1,
+						BasePage.toInt(
+								BasePage.getRow("select  count(*)  from purchase where user = ?", BasePage.uno).get(0))
+								+ 1);
+				var lbl = BasePage.lbl("예약이 완료되었습니다.", JLabel.LEFT);
+				var evtlbl = BasePage.hyplbl("<html><font color = rgb(0,123,255)>지도에서 보기", JLabel.LEFT, 13, (e) -> {
+					JOptionPane.getRootFrame().dispose();
+					searchPage.gotoCenter(BasePage.toInt(building.get(6)), BasePage.toInt(building.get(7)));
+				});
+
+				JPanel temp = new JPanel(new GridLayout(0, 1));
+				temp.add(lbl);
+				temp.add(evtlbl);
+				JOptionPane.showMessageDialog(this, temp, "확인", JOptionPane.INFORMATION_MESSAGE);
+				dispose();
+			}
+		}));
 
 		for (var i : jc) {
 			if (i.length > 1) {
@@ -167,37 +163,35 @@ public class InfoDialog extends JDialog {
 		var stars = new JLabel[5];
 		var ratelbl = BasePage.lbl(((rate == null) ? "0" : rate.get(2) + "") + "/5", JLabel.CENTER, 20);
 
-		if (is시설) {
-			{
-				c.add(BasePage.lbl((rate == null) ? "후기 작성" : "후기 수정", JLabel.LEFT, 20));
-				var temp = new JPanel();
-				temp.setLayout(new FlowLayout(FlowLayout.LEFT));
-				temp.setAlignmentX(LEFT_ALIGNMENT);
+		{
+			c.add(BasePage.lbl((rate == null) ? "후기 작성" : "후기 수정", JLabel.LEFT, 20));
+			var temp = new JPanel();
+			temp.setLayout(new FlowLayout(FlowLayout.LEFT));
+			temp.setAlignmentX(LEFT_ALIGNMENT);
 
-				for (int i = 0; i < 5; i++) {
-					final int j = i;
-					temp.add(stars[i] = BasePage.lbl("★", JLabel.LEFT, 20, (e) -> {
-						if (e.getButton() == 1) {
-							for (var s : stars)
-								s.setForeground(Color.LIGHT_GRAY);
-							for (int k = 0; k <= j; k++)
-								stars[k].setForeground(Color.RED);
-							ratelbl.setText(j + 1 + "/5");
+			for (int i = 0; i < 5; i++) {
+				final int j = i;
+				temp.add(stars[i] = BasePage.lbl("★", JLabel.LEFT, 20, (e) -> {
+					if (e.getButton() == 1) {
+						for (var s : stars)
+							s.setForeground(Color.LIGHT_GRAY);
+						for (int k = 0; k <= j; k++)
+							stars[k].setForeground(Color.RED);
+						ratelbl.setText(j + 1 + "/5");
 
-						}
-					}));
-					stars[i].setForeground(Color.LIGHT_GRAY);
-				}
-				temp.add(ratelbl);
-				c.add(BasePage.sz(temp, 350, 50));
+					}
+				}));
+				stars[i].setForeground(Color.LIGHT_GRAY);
 			}
-			var area = new JTextArea(2, 5);
-			area.setBorder(new LineBorder(Color.BLACK));
-			if (rate != null) {
-				for (int i = 0; i < BasePage.toInt(rate.get(2)); i++)
-					stars[i].setForeground(Color.RED);
-				area.setText(rate.get(4) + "");
-			}
+			temp.add(ratelbl);
+			c.add(BasePage.sz(temp, 350, 50));
+		}
+		var area = new JTextArea(2, 5);
+		area.setBorder(new LineBorder(Color.BLACK));
+		if (rate != null) {
+			for (int i = 0; i < BasePage.toInt(rate.get(2)); i++)
+				stars[i].setForeground(Color.RED);
+			area.setText(rate.get(4) + "");
 
 			area.setLineWrap(true);
 			area.setAlignmentX(LEFT_ALIGNMENT);

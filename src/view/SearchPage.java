@@ -109,8 +109,10 @@ public class SearchPage extends BasePage {
 
 				if (item.isPresent()) {
 					var building = (ArrayList<Object>) item.get()[0];
-					if (e.getButton() == 1)
+					if (e.getButton() == 1) {
+						if(toInt(building.get(5)) == 2) return;
 						new InfoDialog(building).setVisible(true);
+					}
 					else if (e.getButton() == 3) {
 						selected = new Item(building.get(0) + "", building.get(1) + "");
 						menu.show(c, e.getX(), e.getY());

@@ -42,8 +42,8 @@ public class DatePicker extends JPopupMenu {
 		n.add(date = BasePage.lbl("yyyy년 mm월", 2, 13), "West");
 		n.add(ne = new JPanel(new FlowLayout()), "East");
 
-		ne.add(prev = BasePage.lbl("◀", 0));
-		ne.add(next = BasePage.lbl("▶", 0));
+		ne.add(prev = BasePage.lbl("<", 0));
+		ne.add(next = BasePage.lbl(">", 0));
 
 		var m = "일,월,화,수,목,금,토".split(",");
 

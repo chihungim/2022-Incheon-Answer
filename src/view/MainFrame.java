@@ -12,6 +12,11 @@ public class MainFrame extends JFrame {
 	public MainFrame() {
 		super("국삐");
 		setSize(1000, 600);
+		for (var f : UIManager.getDefaults().keySet()) {
+			if (f.toString().contains("back"))
+				UIManager.getDefaults().put(f, new ColorUIResource(Color.WHITE));
+		}
+		
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setIconImage(Toolkit.getDefaultToolkit().getImage("./datafiles/Covid.png"));
