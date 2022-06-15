@@ -17,8 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.FileNotFoundException;
 import java.time.LocalTime;
 import java.util.stream.Stream;
 
@@ -45,11 +44,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
 
 public class AdminPage extends BasePage {
-
 	public AdminPage() {
-		JPanel w, c;
-		setLayout(new BorderLayout(10, 10));
-		add(sz(w = new JPanel(new FlowLayout(0)), 200, 240), "West");
+		setLayout(new BorderLayout());
+		add(w = new JPanel(new FlowLayout(0)), "West");
 		add(c = new JPanel(new BorderLayout()));
 
 		try {
@@ -59,26 +56,29 @@ public class AdminPage extends BasePage {
 			e1.printStackTrace();
 		}
 
-		for (var cap : "<html>&#128100 회원관리,<html>&#127968 건물관리,<html>&#128200 통계,<html>&#128275 로그아웃".split(",")) {
-			var lbl = sz(hyplbl(cap, 2, 20, (e) -> {
+		for (var str : "<html>&#128100 회원관리,<html>&#127968 건물관리,<html>&#128200 통계,<html>&#128275 로그아웃".split(",")) {
+			var hyplbl = sz(hyplbl(str, 2, 20, (e) -> {
 				c.removeAll();
+				var me = (JLabel) e.getSource();
 
-				var myself = (JLabel) e.getSource();
-				for (var comp : w.getComponents())
-					((JComponent) comp).setBorder(null);
+				for (var com : w.getComponents())
+					((JComponent) com).setBorder(null);
 
-				myself.setBorder(
+				me.setBorder(
 						new CompoundBorder(new MatteBorder(0, 3, 0, 0, Color.ORANGE), new EmptyBorder(0, 5, 0, 0)));
-				if (cap.contains("회원관리")) {
+
+				c.removeAll();
+				c.setLayout(new BorderLayout());
+				if (str.contains("회원관리")) {
 					try {
 						c.add(new User());
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-				} else if (cap.contains("건물관리")) {
+				} else if (str.contains("건물관리")) {
 					c.add(new Building());
-				} else if (cap.contains("통계")) {
+				} else if (str.contains("통계")) {
 					c.add(new Chart());
 				} else {
 					mf.swapPage(new LoginPage());
@@ -86,18 +86,106 @@ public class AdminPage extends BasePage {
 
 				repaint();
 				revalidate();
+
 			}), 200, 30);
-			w.setBackground(new Color(0, 123, 255));
-			lbl.setFont(new Font("맑은 고딕", 0, 20));
-			w.add(lbl);
-			((JComponent) w.getComponent(0)).setBorder(
-					new CompoundBorder(new MatteBorder(0, 3, 0, 0, Color.ORANGE), new EmptyBorder(0, 5, 0, 0)));
+			hyplbl.setFont(new Font("맑은 고딕", 0, 20)); // font의 bold가 존나 먹어서 그런듯
+			w.add(hyplbl);
 		}
 
+		((JComponent) w.getComponent(0))
+				.setBorder(new CompoundBorder(new MatteBorder(0, 3, 0, 0, Color.ORANGE), new EmptyBorder(0, 5, 0, 0)));
+
+		sz(w, 200, 240);
+		w.setBackground(blue);
 	}
 
 	public static void main(String[] args) {
 		mf.swapPage(new AdminPage());
+	}
+
+	class User extends JPanel {
+
+		JComboBox<Item> combo;
+		DefaultTableModel m = new DefaultTableModel(null, "번호,이름,아이디,비밀번호,전화번호,생일,거주지".split(",")) {
+			public boolean isCellEditable(int row, int column) {
+				return column != 0 && column != 2;
+			};
+		};
+
+		JTable t = table(m);
+		JTextField txt;
+
+		JComboBox<Item> editCombo;
+
+		MaskFormatter mask1 = new MaskFormatter("###-####-####");
+		MaskFormatter mask2 = new MaskFormatter("####-##-##");
+		{
+			mask1.setPlaceholderCharacter('_');
+			mask2.setPlaceholderCharacter('_');
+		}
+
+		JFormattedTextField edit1 = new JFormattedTextField(mask1);
+		JFormattedTextField edit2 = new JFormattedTextField(mask2);
+
+		public User() throws Exception {
+			setLayout(new BorderLayout(5, 5));
+			add(new JScrollPane(t));
+			add(s = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5)), "South");
+
+			data();
+
+			s.add(btn("수정", a -> {
+				for (int i = 0; i < t.getColumnCount(); i++) {
+					setRows("update user set name= ?, pw = ?, phone = ?, building = ?, birth = ? where no = ?",
+							t.getValueAt(i, 1), t.getValueAt(i, 3), t.getValueAt(i, 4), ((Item) t.getValueAt(i, 6)).no,
+							t.getValueAt(i, 5), t.getValueAt(i, 0));
+
+					data();
+				}
+				iMsg("수정이 완료되었습니다.");
+			}));
+
+			s.add(btn("삭제", a -> {
+				if (t.getSelectedRow() == -1) {
+					eMsg("삭제할 행을 선택해주세요.");
+					return;
+				}
+
+				setRows("delete from user where no = ?", t.getValueAt(t.getSelectedRow(), 0));
+				data();
+			}));
+			editCombo = new JComboBox<Item>(getRows("SELECT no, name FROM covid.building where type = 2;").stream()
+					.map(a -> new Item(a.get(0) + "", a.get(1) + "")).toArray(Item[]::new));
+
+			t.addMouseListener(new MouseAdapter() {
+				public void mousePressed(java.awt.event.MouseEvent e) {
+					if (t.getSelectedRow() == -1)
+						return;
+					if (t.getSelectedColumn() == 6) {
+						for (int i = 0; i < editCombo.getItemCount(); i++) {
+							if (editCombo.getItemAt(i).no.equals(t.getValueAt(t.getSelectedRow(), 6)))
+								editCombo.setSelectedIndex(i);
+						}
+					}
+
+				};
+			});
+
+			t.getColumnModel().getColumn(6).setCellEditor(new DefaultCellEditor(editCombo));
+			t.getColumn("전화번호").setCellEditor(new DefaultCellEditor(edit1));
+			t.getColumn("생일").setCellEditor(new DefaultCellEditor(edit2));
+			t.setRowHeight(30);
+			setBorder(new EmptyBorder(10, 10, 10, 10));
+		}
+
+		void data() {
+			var rs = getRows(
+					"select u.no, u.name, id, pw, phone, birth, b.no,b.name  from building b , user u where b.no = u.building");
+			for (var r : rs) {
+				r.set(6, new Item(r.get(6) + "", r.get(7) + ""));
+			}
+			addRow(m, rs);
+		}
 	}
 
 	class Building extends JPanel {
@@ -113,34 +201,38 @@ public class AdminPage extends BasePage {
 				return column != 1;
 			};
 		};
-		DefaultTableCellRenderer d = new DefaultTableCellRenderer() {
+		DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer() {
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 					boolean hasFocus, int row, int column) {
 				if (value instanceof JComponent) {
-					return (JComponent) value;
+					return (CustomLabel) value;
 				} else {
 					return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				}
 			};
 		};
+
 		JTable t = new JTable(m);
 
-		class CustomJLabel extends JLabel {
-			FileInputStream stream;
-			public CustomJLabel(ImageIcon icon) {
-				super(icon);
+		class CustomLabel extends JLabel {
+			ImageIcon icon;
+
+			public CustomLabel(ImageIcon icon, ImageIcon original) {
+				super();
+				setIcon(icon);
+				this.icon = original;
 			}
+
 		}
 
 		public Building() {
-			super(new BorderLayout());
+			setLayout(new BorderLayout());
 			add(new JScrollPane(t));
 			add(s = new JPanel(new FlowLayout(4)), "South");
 
 			s.add(btn("저장", a -> {
-
 				for (int i = 0; i < t.getRowCount(); i++) {
-					var icon = ((JLabel) t.getValueAt(i, 5)).getIcon();
+					var icon = ((CustomLabel) t.getValueAt(i, 5)).icon;
 					var buff = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_RGB);
 					icon.paintIcon(null, buff.getGraphics(), 0, 0);
 					var byteArr = new ByteArrayOutputStream();
@@ -149,45 +241,31 @@ public class AdminPage extends BasePage {
 						setRows("update building set name= ?, info= ?, open= ?, close= ?, img = ? where no = ?",
 								t.getValueAt(i, 0), t.getValueAt(i, 2), t.getValueAt(i, 3), t.getValueAt(i, 4),
 								new ByteArrayInputStream(byteArr.toByteArray()), t.getValueAt(i, 6));
-					} catch (Exception e1) {
-						e1.printStackTrace();
+					} catch (Exception e) {
+
 					}
 				}
+				iMsg("수정이 완료되었습니다.");
 
 			}));
 
-			d.setHorizontalAlignment(0);
+			dtcr.setHorizontalAlignment(0);
 			t.setSelectionMode(0);
 
 			t.setRowHeight(80);
-			t.setDefaultRenderer(JComponent.class, d);
+			t.setDefaultRenderer(JComponent.class, dtcr);
 
-			var col = "no,사진".split(",");
-			var width = new int[] { 0, 120 };
-			for (int i = 0; i < width.length; i++) {
-				t.getColumn(col[i]).setMinWidth(width[i]);
-				t.getColumn(col[i]).setMaxWidth(width[i]);
-			}
+			t.getColumn("no").setMinWidth(0);
+			t.getColumn("no").setMaxWidth(0);
+			t.getColumn("사진").setMinWidth(120);
+			t.getColumn("사진").setMaxWidth(120);
 
-			col = "이름,설명".split(",");
-			for (int j = 0; j < width.length; j++) {
-				t.getColumn(col[j]).setCellEditor(new DefaultCellEditor(new JTextField()));
-			}
+			t.getColumn("이름").setCellEditor(new DefaultCellEditor(new JTextField()));
+			t.getColumn("설명").setCellEditor(new DefaultCellEditor(new JTextField()));
+			t.getColumn("시작시간").setCellEditor(new Spin(3));
+			t.getColumn("종료시간").setCellEditor(new Spin(4));
 
-			col = "시작시간,종료시간".split(",");
-			for (int k = 0; k < width.length; k++) {
-				t.getColumn(col[k]).setCellEditor(new Spin(k + 3));
-			}
-
-			for (var rs : getRows(
-					"select name, type, info, time_format(open, '%H:%i'), time_format(close,'%H:%i'), img, no from building where type < 3")) {
-				rs.set(1, "진료소,병원,거주지".split(",")[toInt(rs.get(1))]);
-				rs.set(5, new JLabel(new ImageIcon(
-						Toolkit.getDefaultToolkit().createImage((byte[]) rs.get(5)).getScaledInstance(120, 80, 4))));
-				m.addRow(rs.toArray());
-			}
-
-			t.addMouseListener(new MouseAdapter() {	
+			t.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mousePressed(MouseEvent e) {
 					if (e.getButton() != 1 || t.getSelectedRow() == -1 || t.getSelectedColumn() != 5) {
@@ -211,37 +289,50 @@ public class AdminPage extends BasePage {
 
 					if (jfc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 						var file = jfc.getSelectedFile();
-						t.setValueAt(new JLabel(new ImageIcon(Toolkit.getDefaultToolkit()
-								.getImage(file.getAbsolutePath()).getScaledInstance(120, 80, 4))), t.getSelectedRow(),
-								5);
+						t.setValueAt(
+								new CustomLabel(getIcon(file.getAbsolutePath(), 120, 80),
+										new ImageIcon(Toolkit.getDefaultToolkit().getImage(file.getPath()))),
+								t.getSelectedRow(), 5);
 					}
 				}
 			});
 
+			data();
+
 			setBorder(new EmptyBorder(5, 5, 5, 5));
+		}
+
+		void data() {
+			for (var rs : getRows(
+					"select name, type, info, time_format(open, '%H:%i'), time_format(close,'%H:%i'), img, no from building where type <> 3")) {
+				rs.set(1, "진료소,병원,거주지".split(",")[toInt(rs.get(1))]);
+				rs.set(5, new CustomLabel(toIcon(rs.get(5), 120, 80),
+						new ImageIcon(Toolkit.getDefaultToolkit().createImage((byte[]) rs.get(5)))));
+				m.addRow(rs.toArray());
+			}
 		}
 
 		class Spin extends DefaultCellEditor {
 			LocalTime date = LocalTime.of(4, 30);
-			String[] open_times, close_times;
+			String[] open, close;
 			JSpinner spinner;
 			JSpinner.DefaultEditor editor;
 
 			public Spin(int column) {
 				super(new JTextField());
-				open_times = Stream.generate(() -> {
+
+				open = Stream.generate(() -> {
 					date = date.plusMinutes(30);
-					return date + "";
+					return date.toString();
 				}).limit(10).toArray(String[]::new);
 				date = LocalTime.of(18, 30);
-				close_times = Stream.generate(() -> {
+				close = Stream.generate(() -> {
 					date = date.plusMinutes(30);
-					return date + "";
+					return date.toString();
 				}).limit(10).toArray(String[]::new);
-				spinner = new JSpinner(new SpinnerListModel(column == 3 ? open_times : close_times));
+				spinner = new JSpinner(new SpinnerListModel(column == 3 ? open : close));
 			}
 
-			@Override
 			public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row,
 					int column) {
 				if (table.getValueAt(row, 1).toString().equals("거주지")) {
@@ -251,140 +342,12 @@ public class AdminPage extends BasePage {
 
 				spinner.setValue(t.getValueAt(row, column));
 				return spinner;
-			}
+			};
 
 			@Override
 			public Object getCellEditorValue() {
 				return spinner.getValue();
 			}
-		}
-
-	}
-
-	class User extends JPanel {
-		DefaultTableModel m = new DefaultTableModel(null, "번호,이름,아이디,비밀번호,전화번호,생일,거주지".split(",")) {
-			public boolean isCellEditable(int row, int column) {
-				return column != 0 && column != 2;
-			};
-		};
-		JTable table = table(m);
-		JTextField txt;
-
-		class Item {
-			String key;
-			String value;
-
-			public Item(String key, String value) {
-				this.key = key;
-				this.value = value;
-			}
-
-			@Override
-			public String toString() {
-				return value;
-			}
-		}
-
-		JComboBox<Item> editCombo;
-
-		MaskFormatter mask1 = new MaskFormatter("###-####-####");
-		MaskFormatter mask2 = new MaskFormatter("####-##-##");
-
-		{
-			mask1.setPlaceholderCharacter('_');
-			mask2.setPlaceholderCharacter('_');
-		}
-		JFormattedTextField editField = new JFormattedTextField(mask1);
-		JFormattedTextField editField2 = new JFormattedTextField(mask2);
-
-		public User() throws Exception {
-			setLayout(new BorderLayout(5, 5));
-			add(new JScrollPane(table));
-			add(s = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5)), "South");
-			addRow(m, getRows(
-					"select u.no, u.name,u.id,u.pw, u.phone,u.birth,b.name from user u, building b where u.building = b.no order by u.no"));
-			s.add(btn("수정", a -> {
-				for (int i = 0; i < table.getColumnCount(); i++) {
-					var name = table.getValueAt(i, 1).toString();
-					var id = table.getValueAt(i, 2).toString();
-					var pw = table.getValueAt(i, 3).toString();
-					var phone = table.getValueAt(i, 4).toString();
-					var birth = table.getValueAt(i, 5).toString();
-
-					if (name.isEmpty() || id.isEmpty() || pw.isEmpty()
-							|| phone.replace("-", "").replace("_", "").trim().isEmpty()
-							|| birth.replace("-", "").replace("_", "").trim().isEmpty()) {
-						eMsg("빈칸이 존재합니다.");
-						return;
-					}
-
-					var simple = new SimpleDateFormat("yyyy-MM-dd");
-					simple.setLenient(false);
-
-					try {
-						simple.parse(birth);
-					} catch (ParseException e1) {
-						eMsg("생년월일 포맷이 잘못되었습니다.");
-						return;
-					}
-				}
-
-				for (int i = 0; i < table.getColumnCount(); i++) {
-					var name = table.getValueAt(i, 1).toString();
-					var id = table.getValueAt(i, 2).toString();
-					var pw = table.getValueAt(i, 3).toString();
-					var phone = table.getValueAt(i, 4).toString();
-					var building = getRow("select no from building where name = ?", table.getValueAt(i, 6).toString())
-							.get(0);
-					var birth = table.getValueAt(i, 5).toString();
-					setRows("update user set name = ?, id = ?, pw = ?, phone = ?, building =?, birth = ? where no = ?",
-							name, id, pw, phone, building, birth, table.getValueAt(i, 0) + "");
-				}
-
-				iMsg("수정이 완료되었습니다.");
-
-				addRow(m, getRows(
-						"select u.no, u.name,u.id,u.pw, u.phone,u.birth,b.name from user u, building b where u.building = b.no order by u.no"));
-			}));
-
-			s.add(btn("삭제", a -> {
-				if (table.getSelectedRow() == -1) {
-					eMsg("삭제할 행을 선택해주세요.");
-					return;
-				}
-				setRows("delete from user where no = ?", table.getValueAt(table.getSelectedRow(), 0));
-				addRow(m, getRows(
-						"select u.no, u.name,u.id,u.pw, u.phone,u.birth,b.name from user u, building b where u.building = b.no order by u.no"));
-			}));
-
-			table.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mousePressed(MouseEvent e) {
-					if (table.getSelectedRow() == -1)
-						return;
-					if (table.getSelectedColumn() == 4)
-						editField.setText(table.getValueAt(table.getSelectedRow(), 4).toString());
-
-					if (table.getSelectedColumn() == 5)
-						editField2.setText(table.getValueAt(table.getSelectedRow(), 5).toString());
-
-					if (table.getSelectedColumn() == 6) {
-						for (int i = 0; i < editCombo.getItemCount(); i++) {
-							if (editCombo.getItemAt(i).value.equals(table.getValueAt(table.getSelectedRow(), 6)))
-								editCombo.setSelectedIndex(i);
-						}
-					}
-				}
-			});
-			table.setRowHeight(30);
-			editCombo = new JComboBox<Item>(getRows("select no, name from building where type = 2").stream()
-					.map(a -> new Item(a.get(0) + "", a.get(1) + "")).toArray(Item[]::new));
-			table.getColumnModel().getColumn(6).setCellEditor(new DefaultCellEditor(editCombo));
-			table.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(editField));
-			table.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(editField2));
-
-			setBorder(new EmptyBorder(10, 10, 10, 10));
-
 		}
 	}
 
@@ -468,6 +431,6 @@ public class AdminPage extends BasePage {
 			repaint();
 			revalidate();
 		}
-
 	}
+
 }

@@ -222,7 +222,7 @@ public class InfoDialog extends JDialog {
 								ratelbl.getText().split("/")[0], area.getText(), rate.get(0));
 						BasePage.iMsg("수정이 완료되었습니다.");
 					}
-					if (!searchPage.searchTxt.getText().isEmpty())
+					if (!searchPage.search.getText().isEmpty())
 						searchPage.search();
 					info_ui();
 
@@ -231,7 +231,7 @@ public class InfoDialog extends JDialog {
 				if (rate != null)
 					temp.add(BasePage.btn("삭제", a -> {
 						BasePage.setRows("delete from rate where no = ?", rate.get(0));
-						if (!searchPage.searchTxt.getText().isEmpty())
+						if (!searchPage.search.getText().isEmpty())
 							searchPage.search();
 						info_ui();
 					}));

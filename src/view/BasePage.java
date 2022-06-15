@@ -41,7 +41,7 @@ public class BasePage extends JPanel {
 	JPanel wn, wc, we, ww, ws;
 	JPanel en, ec, ee, ew, es;
 	JPanel sn, sc, se, sw, ss;
-
+	public static Color blue = new Color(0, 123, 255);
 	public static MainFrame mf = new MainFrame();
 
 	public static String uno;
