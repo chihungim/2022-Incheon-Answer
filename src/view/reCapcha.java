@@ -96,9 +96,7 @@ public class reCapcha extends JDialog {
 
 		addWindowListener(new WindowAdapter() {
 			public void windowClosed(java.awt.event.WindowEvent e) {
-				loginPage.chkpanel.flag1 = false;
-				loginPage.chkpanel.repaint();
-				loginPage.chkpanel.flag2 = true;
+				loginPage.box.setSelected(true);
 			};
 		});
 

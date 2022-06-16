@@ -2,6 +2,7 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -217,7 +218,16 @@ public class BasePage extends JPanel {
 
 	public JTable table(DefaultTableModel m) {
 		var t = new JTable(m);
-		var dtcr = new DefaultTableCellRenderer();
+		var dtcr = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column) {
+				if (value instanceof JComponent)
+					return (JComponent) value;
+				else
+					return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			}
+		};
 		t.getTableHeader().setReorderingAllowed(false);
 		t.getTableHeader().setResizingAllowed(false);
 		t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

@@ -72,6 +72,11 @@ public class SignPage extends BasePage {
 				return;
 			}
 
+			if (txt[5].getText().matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+				BasePage.eMsg("날짜 형식이 잘못되었습니다.");
+				return;
+			}
+
 			setRows("insert user values(0, ? , ? , ? , ? , ? , ?)", txt[0].getText(), txt[1].getText(),
 					txt[2].getText(), txt[4].getText(), txt[5].getText(),
 					getRows("select no from building where name = ?", combo.getSelectedItem()).get(0));
@@ -85,17 +90,6 @@ public class SignPage extends BasePage {
 		for (var r : getRows("SELECT name FROM covid.building where type = 2;")) {
 			combo.addItem(r.get(0) + "");
 		}
-
-		txt[5].setRequestFocusEnabled(false);
-
-		txt[5].addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (e.getButton() == 3) {
-					new DatePicker(txt[5], false).show(txt[5], 0, txt[5].getHeight());
-				}
-			}
-		});
 
 		combo.setBackground(Color.WHITE);
 		cc.setOpaque(false);

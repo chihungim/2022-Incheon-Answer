@@ -110,10 +110,10 @@ public class SearchPage extends BasePage {
 				if (item.isPresent()) {
 					var building = (ArrayList<Object>) item.get()[0];
 					if (e.getButton() == 1) {
-						if(toInt(building.get(5)) == 2) return;
+						if (toInt(building.get(5)) == 2)
+							return;
 						new InfoDialog(building).setVisible(true);
-					}
-					else if (e.getButton() == 3) {
+					} else if (e.getButton() == 3) {
 						selected = new Item(building.get(0) + "", building.get(1) + "");
 						menu.show(c, e.getX(), e.getY());
 					}
@@ -256,9 +256,7 @@ public class SearchPage extends BasePage {
 		wc.add(new JScrollPane(srchP = new JPanel(new BorderLayout())), "검색");
 		wc.add(new JScrollPane(pathP = new JPanel(new BorderLayout())), "길찾기");
 		pathP.add(pathRsP = new JPanel(new GridLayout(0, 1, 5, 5)));
-		srchP.add(lbl("<html><center>텍스트필드에 텍스트를 입력하고<br>검색버튼을 누르세요.", JLabel.CENTER));
 		toggle[0].setSelected(true);
-
 		{
 			var temp1 = new JPanel(new BorderLayout(5, 5));
 			var temp2 = new JPanel(new GridLayout(0, 1, 5, 5));
@@ -286,7 +284,6 @@ public class SearchPage extends BasePage {
 				dijkstra();
 			}));
 			temp1.setBorder(new EmptyBorder(5, 5, 5, 5));
-
 		}
 
 		wn.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -298,17 +295,14 @@ public class SearchPage extends BasePage {
 
 	void search() {
 		srchP.removeAll();
-		toggle[0].setSelected(true);
-		srchP.setLayout(new GridBagLayout());
 		if (search.getText().trim().isEmpty())
-			srchP.add(lbl("<html><center><font color = rgb(0,123,255)>공백이 존재합니다,", 0));
+			eMsg("공백이 존제합니다.");
 		else {
 			var rs = getRows(
 					"select b.*, ifnull((select round(avg(r.rate),1) from rate r where r.building = b.no)  , 0) from building b where type <> 3 and b.name like '%"
 							+ search.getText() + "%' or b.info like '%" + search.getText() + "%';");
 			if (rs.isEmpty()) {
-				srchP.add(lbl(
-						"<html><center><font color = rgb(0,123,255)>" + search.getText() + "</font><br>의 결과가 없어요.", 0));
+				iMsg("검색 결과가 없습니다.");
 			} else {
 				srchP.setLayout(new BorderLayout());
 				srchP.add(lbl("<html>장소명 <Font color = rgb(0,123,255)>" + search.getText() + "</font> 의 검색 결과",
@@ -565,8 +559,6 @@ public class SearchPage extends BasePage {
 			hyplbl.setBorder(new MatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
 			pathRsP.add(hyplbl);
 		}
-
-		toggle[1].setSelected(true);
 
 		drawOnMap();
 

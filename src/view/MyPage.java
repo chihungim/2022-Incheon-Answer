@@ -27,24 +27,7 @@ public class MyPage extends BasePage {
 	JTable t1 = table(m1);
 
 	JTextField txt[] = { new JTextField(), new JTextField(), new JTextField(), new JTextField() };
-	JComboBox<item> combo = new JComboBox<item>() {
-	};
-
-	class item {
-		String key;
-		String value;
-
-		public item(String key, String value) {
-			super();
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		public String toString() {
-			return value;
-		}
-	}
+	JComboBox<Item> combo = new JComboBox<Item>();
 
 	JComponent jc[] = { txt[0], txt[1], txt[2], txt[3], combo };
 
@@ -91,15 +74,15 @@ public class MyPage extends BasePage {
 			}
 
 			setRows("update user set id = ?, name = ?, phone = ?, building = ? where no = ?", txt[0].getText(),
-					txt[1].getText(), txt[2].getText(), ((item) combo.getSelectedItem()).key, uno);
+					txt[1].getText(), txt[2].getText(), ((Item) combo.getSelectedItem()).no, uno);
 			iMsg("수정이 완료되었습니다.");
 		}));
 
 		for (var r : getRows("select no,name from building where type=2"))
-			combo.addItem(new item(r.get(0) + "", r.get(1) + ""));
+			combo.addItem(new Item(r.get(0) + "", r.get(1) + ""));
 
 		for (int i = 0; i < combo.getItemCount(); i++)
-			if (combo.getItemAt(i).key.equals(getRow("select building from user where no = ?", uno).get(0) + ""))
+			if (combo.getItemAt(i).no.equals(getRow("select building from user where no = ?", uno).get(0) + ""))
 				combo.setSelectedIndex(i);
 
 		addRow(m, getRows(

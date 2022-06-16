@@ -11,6 +11,7 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -21,7 +22,8 @@ import javax.swing.border.LineBorder;
 public class LoginPage extends BasePage {
 
 	JTextField[] txt = { new JTextField(15), new JTextField(15) };
-	CheckPanel chkpanel = new CheckPanel();
+
+	JCheckBox box = new JCheckBox("로봇이 아닙니다.");
 
 	public LoginPage() {
 		setLayout(new GridBagLayout());
@@ -36,14 +38,19 @@ public class LoginPage extends BasePage {
 			cc.add(txt[i]);
 		}
 
-		cc.add(chkpanel);
+		cc.add(box);
 
 		cs.add(hyplbl("처음이십니까?", JLabel.LEFT, 13, (e) -> {
 			mf.swapPage(new SignPage());
 		}), "North");
 
+		box.addActionListener(a -> {
+			new reCapcha().setVisible(true);
+			box.setSelected(false);
+		});
+
 		cs.add(btn("로그인", a -> {
-			if (!chkpanel.flag2) {
+			if (!box.isSelected()) {
 				eMsg("캡챠를 확인해주세요.");
 				return;
 			}
@@ -78,78 +85,5 @@ public class LoginPage extends BasePage {
 
 	public static void main(String[] args) {
 		mf.swapPage(new LoginPage());
-	}
-
-	class CheckPanel extends JPanel {
-		JPanel box;
-		Thread thread;
-
-		int arc = 0;
-		boolean flag1, flag2; // flag1 click, flag2 after capture finished
-
-		public CheckPanel() {
-			setLayout(new BorderLayout(5, 5));
-			add(sz(box = new JPanel() {
-				@Override
-				protected void paintComponent(Graphics g) {
-					super.paintComponent(g);
-					var g2 = (Graphics2D) g;
-					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-					g2.setStroke(new BasicStroke(2));
-
-					if (flag1) {
-						g2.setColor(Color.LIGHT_GRAY);
-						g2.drawOval(3, 3, 25, 25);
-						g2.setColor(Color.GRAY);
-						g2.drawArc(3, 3, 25, 25, arc, arc);
-						if (thread.isInterrupted()) {
-							new reCapcha().setVisible(true);
-						}
-					} else if (flag2) {
-						g2.setColor(Color.green);
-						g2.drawString("✔", g2.getFontMetrics().stringWidth("✔") / 2, 25);
-					} else {
-						g2.setColor(Color.BLACK);
-						g2.drawRect(3, 3, 25, 25);
-					}
-
-				}
-			}, 30, 30));
-
-			box.add(lbl("로봇이 아닙니다.", 2, 15));
-			box.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mousePressed(MouseEvent e) {
-					if (e.getButton() == 1 && !flag1)
-						drawArc();
-				}
-			});
-
-			box.setOpaque(false);
-			setOpaque(false);
-		}
-
-		void drawArc() {
-			if (!(flag1 && flag2)) {
-				flag1 = true;
-				thread = new Thread(() -> {
-					while (arc <= 365) {
-						try {
-							Thread.sleep(10);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						arc += 5;
-						box.repaint();
-					}
-					thread.interrupt();
-				});
-				thread.start();
-			} else {
-				box.repaint();
-				box.revalidate();
-			}
-		}
-
 	}
 }

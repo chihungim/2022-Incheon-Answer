@@ -71,8 +71,8 @@ public class InfoDialog extends JDialog {
 				btn1.setText("뒤로가기");
 			} else {
 
-				if (txt[2].getText().isEmpty()) {
-					BasePage.eMsg("날짜를 선택해주세요.");
+				if (txt[2].getText().matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+					BasePage.eMsg("날짜 형식이 잘못되었습니다.");
 					return;
 				}
 
@@ -119,18 +119,8 @@ public class InfoDialog extends JDialog {
 		txt[0].setText(BasePage.getRow("select name from user where no = ?", BasePage.uno).get(0) + "");
 		txt[1].setText(BasePage.getRow("select phone from user where no = ?", BasePage.uno).get(0) + "");
 
-		txt[2].addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (e.getButton() == 3) {
-					new DatePicker(txt[2], true).show(txt[2], 0, txt[2].getHeight());
-				}
-			}
-		});
-
 		txt[0].setRequestFocusEnabled(false);
 		txt[1].setRequestFocusEnabled(false);
-		txt[2].setRequestFocusEnabled(false);
 
 		var start = LocalTime.parse(building.get(2).toString(), DateTimeFormatter.ofPattern("HH:mm:ss"));
 		var end = LocalTime.parse(building.get(3).toString(), DateTimeFormatter.ofPattern("HH:mm:ss"));
