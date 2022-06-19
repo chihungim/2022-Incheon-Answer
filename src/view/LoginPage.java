@@ -1,16 +1,14 @@
 package view;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.CheckboxGroup;
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.RenderingHints;
+import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -21,37 +19,34 @@ import javax.swing.border.LineBorder;
 
 public class LoginPage extends BasePage {
 
-	JTextField[] txt = { new JTextField(15), new JTextField(15) };
+	JTextField txt[] = { new JTextField(), new JTextField() };
 
-	JCheckBox box = new JCheckBox("로봇이 아닙니다.");
+	JCheckBox box;
+	ButtonGroup bg;
 
 	public LoginPage() {
 		setLayout(new GridBagLayout());
 		add(sz(c = new JPanel(new BorderLayout()), 200, 250));
 
-		c.add(lbl("COVID-19", 0, 20), "North");
-		c.add(cc = new JPanel(new GridLayout(0, 1, 5, 5)));
+		c.add(lbl("COVID-19", JLabel.CENTER, 20), "North");
+		c.add(cc = new JPanel(new GridLayout(0, 1)));
 		c.add(cs = new JPanel(new BorderLayout()), "South");
 
-		for (int i = 0; i < txt.length; i++) {
-			cc.add(lbl("ID,PW".split(",")[i], JLabel.LEFT, 15));
-			cc.add(txt[i]);
-		}
+		cc.add(lbl("ID", JLabel.LEFT, 15));
+		cc.add(txt[0]);
+		cc.add(lbl("pw", JLabel.LEFT, 15));
+		cc.add(txt[1]);
 
-		cc.add(box);
-
-		cs.add(hyplbl("처음이십니까?", JLabel.LEFT, 13, (e) -> {
-			mf.swapPage(new SignPage());
-		}), "North");
-
-		box.addActionListener(a -> {
-			new reCapcha().setVisible(true);
-			box.setSelected(false);
-		});
-
+		cs.add(box = new JCheckBox("로봇이 아닙니다."), "North");
+		cs.add(hyplbl("처음이십니까?", JLabel.LEFT, 15, e -> mf.swapPage(new SignPage())));
 		cs.add(btn("로그인", a -> {
+			if (txt[0].getText().isEmpty() || txt[1].getText().isEmpty()) {
+				eMsg("빈칸이 있습니다.");
+				return;
+			}
+
 			if (!box.isSelected()) {
-				eMsg("캡챠를 확인해주세요.");
+				eMsg("리캡챠를 확인해주세요.");
 				return;
 			}
 
@@ -60,26 +55,25 @@ public class LoginPage extends BasePage {
 				return;
 			}
 
-			if (txt[0].getText().isEmpty() || txt[1].getText().isEmpty()) {
-				eMsg("빈칸이 있습니다.");
+			if (getRow("select * from user where id = ? and pw = ?", txt[0].getText(), txt[1].getText()) == null) {
+				eMsg("아이디 또는 비밀번호가 잘못되었습니다.");
 				return;
 			}
 
-			if (getRows("select * from user where id = ? and pw = ?", txt[0].getText(), txt[1].getText()).isEmpty()) {
-				eMsg("존재하는 회원이 없습니다.");
-				return;
-			}
-
-			uno = getRow("select * from user where id = ? and pw = ?", txt[0].getText(), txt[1].getText()).get(0) + "";
+			uno = getRow("select * from user where id = ? and pw = ?", txt[0].getText(), txt[1].getText()).get(0)
+					.toString();
 
 			mf.swapPage(new MainPage());
+		}), "South");
 
-		}));
+		bg = new ButtonGroup();
+		bg.add(box);
+		box.addActionListener(a -> {
+			if (!box.isSelected())
+				return;
+			new reCapcha().setVisible(true);
+		});
 
-		cc.setOpaque(false);
-		cs.setOpaque(false);
-
-		c.setBackground(Color.WHITE);
 		c.setBorder(new CompoundBorder(new LineBorder(Color.BLACK), new EmptyBorder(5, 5, 5, 5)));
 	}
 
