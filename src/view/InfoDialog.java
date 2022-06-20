@@ -143,7 +143,7 @@ public class InfoDialog extends JDialog {
 		var jsc = new JScrollPane(c);
 		info.add(jsc);
 
-		c.add(BasePage.lbl("정보", JLabel.LEFT, 20));
+		c.add(BasePage.lbl("사진", JLabel.LEFT, 20));
 		if (building.get(8) != null)
 			c.add(new JLabel(BasePage.toIcon(building.get(8), 350, 180)));
 

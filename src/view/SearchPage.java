@@ -43,8 +43,7 @@ import com.mysql.cj.x.protobuf.MysqlxCrud.Collection;
 
 public class SearchPage extends BasePage {
 	BufferedImage map;
-	double affTargetX = 0, affTargetY = 0, startAffX, startAffY, zoom = 0.5;
-	AffineTransform aff = new AffineTransform();
+	double affTargetX = 0, affTargetY = 0, startAffX, startAffY, zoom = 0.5;	AffineTransform aff = new AffineTransform();
 
 	Point2D curAffPoint;
 	JToggleButton toggle[] = new JToggleButton[2];

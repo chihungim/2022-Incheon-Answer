@@ -9,20 +9,26 @@ import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultButtonModel;
+import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.plaf.basic.BasicCheckBoxUI;
+import javax.swing.plaf.metal.MetalCheckBoxUI;
+import javax.swing.plaf.metal.MetalToggleButtonUI;
 
 public class LoginPage extends BasePage {
 
 	JTextField txt[] = { new JTextField(), new JTextField() };
 
 	JCheckBox box;
-	ButtonGroup bg;
+	boolean flag;
 
 	public LoginPage() {
 		setLayout(new GridBagLayout());
@@ -45,7 +51,7 @@ public class LoginPage extends BasePage {
 				return;
 			}
 
-			if (!box.isSelected()) {
+			if (!flag) {
 				eMsg("리캡챠를 확인해주세요.");
 				return;
 			}
@@ -65,15 +71,20 @@ public class LoginPage extends BasePage {
 
 			mf.swapPage(new MainPage());
 		}), "South");
-
-		bg = new ButtonGroup();
-		bg.add(box);
-		box.addActionListener(a -> {
-			if (!box.isSelected())
-				return;
-			new reCapcha().setVisible(true);
+		box.setEnabled(false);
+		box.setModel(new DefaultButtonModel() {
+			public boolean isSelected() {
+				return flag;
+			};
 		});
 
+		box.addMouseListener(new MouseAdapter() {
+			public void mousePressed(java.awt.event.MouseEvent e) {
+				if (box.isSelected())
+					return;
+				new ReCapcha().setVisible(true);
+			};
+		});
 		c.setBorder(new CompoundBorder(new LineBorder(Color.BLACK), new EmptyBorder(5, 5, 5, 5)));
 	}
 
