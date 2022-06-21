@@ -428,7 +428,7 @@ public class SearchPage extends BasePage {
 			}
 		}
 
-		var d = "진료소,병원,주거지".split(",");
+		var d = "진료소,병원,거주지".split(",");
 
 		for (var r : objList) {
 			var building = (ArrayList<Object>) r[0];
