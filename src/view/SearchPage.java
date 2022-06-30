@@ -39,11 +39,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.plaf.metal.MetalToggleButtonUI;
 
-import com.mysql.cj.x.protobuf.MysqlxCrud.Collection;
-
 public class SearchPage extends BasePage {
 	BufferedImage map;
-	double affTargetX = 0, affTargetY = 0, startAffX, startAffY, zoom = 0.5;	AffineTransform aff = new AffineTransform();
+	double affTargetX = 0, affTargetY = 0, startAffX, startAffY, zoom = 0.5;
+	AffineTransform aff = new AffineTransform();
 
 	Point2D curAffPoint;
 	JToggleButton toggle[] = new JToggleButton[2];
@@ -271,8 +270,8 @@ public class SearchPage extends BasePage {
 				var temp = new Item(start.getName(), start.getText());
 				start.setText(end.getText());
 				start.setName(end.getName());
-				end.setText(temp.value);
-				end.setName(temp.no);
+				end.setText(temp.getValue());
+				end.setName(temp.getKey());
 				dijkstra();
 			}), "East");
 			temp3.add(btn("집을 출발지로 ", a -> {
@@ -375,24 +374,24 @@ public class SearchPage extends BasePage {
 	}
 
 	void setStart(Item item) {
-		if (end.getName() != null && end.getName().equals(item.no)) {
+		if (end.getName() != null && end.getName().equals(item.getKey())) {
 			System.out.println("ㅇㅇ");
 			eMsg("출발지와 도착지는 같을 수 없습니다.");
 			return;
 		}
 
-		start.setText(item.value);
-		start.setName(item.no);
+		start.setText(item.getValue());
+		start.setName(item.getKey());
 	}
 
 	void setEnd(Item item) {
-		if (start.getName() != null && start.getName().equals(item.no)) {
+		if (start.getName() != null && start.getName().equals(item.getKey())) {
 			eMsg("출발지와 도착지는 같을 수 없습니다.");
 			return;
 		}
 
-		end.setText(item.value);
-		end.setName(item.no);
+		end.setText(item.getValue());
+		end.setName(item.getKey());
 	}
 
 	private void drawOnMap() {
@@ -428,7 +427,7 @@ public class SearchPage extends BasePage {
 			}
 		}
 
-		var d = "진료소,병원,거주지".split(",");
+		var d = "진료소,병원,주거지".split(",");
 
 		for (var r : objList) {
 			var building = (ArrayList<Object>) r[0];
@@ -454,7 +453,7 @@ public class SearchPage extends BasePage {
 	private void dataInit() {
 		adjList = new ArrayList<ArrayList<Object[]>>();
 		objList = new ArrayList<Object[]>();
-		for (int i = 0; i < getRows("select * from building").size() + 1; i++)
+		for (int i = 0; i <= 345; i++)
 			adjList.add(new ArrayList<Object[]>());
 
 		for (var r : getRows(

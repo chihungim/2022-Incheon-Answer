@@ -2,13 +2,9 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -21,89 +17,53 @@ import javax.swing.table.DefaultTableModel;
 
 public class MyPage extends BasePage {
 
-	DefaultTableModel m = model("병원 이름,내용,평점".split(","));
-	JTable t = table(m);
-	DefaultTableModel m1 = model("구분,백신 종류,병원,가격".split(","));
+	DefaultTableModel m1 = model("병원 이름,내용,평점".split(","));
+	DefaultTableModel m2 = model("구분,백신 종류,병원,가격".split(","));
+
 	JTable t1 = table(m1);
+	JTable t2 = table(m2);
 
 	JTextField txt[] = { new JTextField(), new JTextField(), new JTextField(), new JTextField() };
-	JComboBox<Item> combo = new JComboBox<Item>();
-
-	JComponent jc[] = { txt[0], txt[1], txt[2], txt[3], combo };
+	JComboBox<Item> combo = new JComboBox<Item>(getRows("select no, name from building where type =2").stream()
+			.map(a -> new Item(a.get(0).toString(), a.get(1).toString())).toArray(Item[]::new));
 
 	public MyPage() {
 		setLayout(new BorderLayout(10, 10));
-		add(c = new JPanel(new GridLayout(0, 1, 5, 5)));
-		add(e = new JPanel(new BorderLayout(5, 5)), "East");
 
-		c.setBackground(Color.WHITE);
-		c.add(lbl("Profile", 0, 25));
+		var m = new JPanel(new GridLayout(1, 0, 10, 10));
+		add(m);
+		m.add(c = new JPanel(new BorderLayout(5, 5)));
+		m.add(e = new JPanel(new BorderLayout(5, 5)));
 
-		var str = "아이디,이름,전화번호,생년월일,거주지".split(",");
+		c.add(lbl("Profile", JLabel.CENTER, 20), "North");
+		c.add(cc = new JPanel(new GridLayout(0, 1, 5, 5)));
+
+		e.add(new JScrollPane(t1));
+		e.add(sz(new JScrollPane(t2), 0, 80), "South");
+
+		var str = "아이디,이름,전화번호,생년월일".split(",");
 
 		for (int i = 0; i < str.length; i++) {
-			c.add(BasePage.lbl(str[i], JLabel.LEFT, 15));
-			c.add(jc[i]);
+			cc.add(lbl(str[i], JLabel.LEFT));
+			cc.add(txt[i]);
 		}
 
-		combo.setBackground(Color.WHITE);
-
-		e.add(new JScrollPane(t));
-		e.add(sz(new JScrollPane(t1), 0, 120), "South");
-
-		add(BasePage.hyplbl("메인으로 가기", JLabel.LEFT, 13, (e) -> {
-			mf.swapPage(new MainPage());
-		}), "South");
-
-		c.add(BasePage.btn("수정하기", a -> {
-			for (var t : txt) {
-				if (t.getText().isEmpty()) {
-					eMsg("빈칸이 있습니다.");
-					return;
-				}
-			}
-
-			if (getRow("select id from user where id = ? and no <> ?", txt[0].getText(), uno) != null) {
-				eMsg("아이디가 중복되었습니다.");
-				return;
-			}
-
-			if (!txt[2].getText().matches("^\\d{3}-\\d{4}-\\d{4}$")) {
-				eMsg("전화번호를 확인해주세요.");
-				return;
-			}
-
-			setRows("update user set id = ?, name = ?, phone = ?, building = ? where no = ?", txt[0].getText(),
-					txt[1].getText(), txt[2].getText(), ((Item) combo.getSelectedItem()).no, uno);
-			iMsg("수정이 완료되었습니다.");
+		cc.add(lbl("거주지", JLabel.LEFT));
+		cc.add(combo);
+		cc.add(btn("수정", a -> {
 		}));
 
-		for (var r : getRows("select no,name from building where type=2"))
-			combo.addItem(new Item(r.get(0) + "", r.get(1) + ""));
-
-		for (int i = 0; i < combo.getItemCount(); i++)
-			if (combo.getItemAt(i).no.equals(getRow("select building from user where no = ?", uno).get(0) + ""))
-				combo.setSelectedIndex(i);
-
-		addRow(m, getRows(
-				"select b.name, r.review, r.rate from rate r, building b where b.`no` = r.building and r.user = ?",
+		addRow(m1, getRows("select b.name, review, rate from building b ,rate r where b.no = r.building and r.user = ?",
+				uno));
+		addRow(m2, getRows(
+				"select concat(shot, '차 접종'), v.name, b.name, concat(format(v.price, '#,##0'), '원') from building b, purchase p, vaccine v where b.no = p.building and p.vaccine = v.no and p.user = ?",
 				uno));
 
-		addRow(m1, getRows(
-				"select concat(p.shot, '차 접종') , v.name, b.name, concat(format(v.price, '#,##0'), '원') from purchase p, vaccine v, building b where p.vaccine = v.no and p.building = b.no and user = ? order by p.shot",
-				uno));
-
-		var rs = getRow("select id, name, phone, birth from user where no = ?", uno);
-
-		for (int i = 0; i < rs.size(); i++)
-			txt[i].setText(rs.get(i) + "");
-
-		txt[3].setEditable(false);
+		add(hyplbl("메인으로", JLabel.LEFT, 13, a -> mf.swapPage(new MainPage())), "South");
 
 		c.setBorder(new CompoundBorder(new LineBorder(Color.BLACK), new EmptyBorder(5, 5, 5, 5)));
 
-		setBorder(new EmptyBorder(10, 20, 10, 20));
-
+		setBorder(new EmptyBorder(20, 20, 20, 20));
 	}
 
 	public static void main(String[] args) {

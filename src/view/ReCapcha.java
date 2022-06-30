@@ -52,7 +52,7 @@ public class ReCapcha extends JDialog {
 
 		loginPage = (LoginPage) BasePage.mf.getContentPane().getComponent(0);
 
-		for (var f : new File("./datafiles/캡챠").listFiles()) {
+		for (var f : new File("./datafiles/리캡차").listFiles()) {
 			try {
 				var data = Files.readAllBytes(f.toPath());
 				var tmp = new String(data, "utf-8");

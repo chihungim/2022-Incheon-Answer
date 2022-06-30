@@ -128,7 +128,6 @@ public class InfoDialog extends JDialog {
 
 		txt[0].setRequestFocusEnabled(false);
 		txt[1].setRequestFocusEnabled(false);
-		txt[2].setRequestFocusEnabled(false);
 
 		var start = LocalTime.parse(building.get(2).toString(), DateTimeFormatter.ofPattern("HH:mm:ss"));
 		var end = LocalTime.parse(building.get(3).toString(), DateTimeFormatter.ofPattern("HH:mm:ss"));

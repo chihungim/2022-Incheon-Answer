@@ -37,7 +37,8 @@ public class LoginPage extends BasePage {
 		c.add(lbl("COVID-19", JLabel.CENTER, 20), "North");
 		c.add(cc = new JPanel(new GridLayout(0, 1)));
 		c.add(cs = new JPanel(new BorderLayout()), "South");
-
+		txt[0].setText("user01");
+		txt[1].setText("user01!");
 		cc.add(lbl("ID", JLabel.LEFT, 15));
 		cc.add(txt[0]);
 		cc.add(lbl("pw", JLabel.LEFT, 15));
@@ -89,6 +90,7 @@ public class LoginPage extends BasePage {
 	}
 
 	public static void main(String[] args) {
+		
 		mf.swapPage(new LoginPage());
 	}
 }

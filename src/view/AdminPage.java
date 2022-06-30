@@ -94,7 +94,7 @@ public class AdminPage extends BasePage {
 						for (int i = 0; i < t.getColumnCount(); i++) {
 							setRows("update user set name = ? , pw = ?, phone = ?, birth = ?, building =? where no =?",
 									t.getValueAt(i, 1), t.getValueAt(i, 3), t.getValueAt(i, 4), t.getValueAt(i, 5),
-									((Item) t.getValueAt(i, 6)).no, t.getValueAt(i, 0));
+									((Item) t.getValueAt(i, 6)).getKey(), t.getValueAt(i, 0));
 						}
 
 						iMsg("수정이 완료되었습니다.");
@@ -122,7 +122,7 @@ public class AdminPage extends BasePage {
 
 					if (t.getSelectedColumn() == 6) {
 						for (int i = 0; i < editcombo.getItemCount(); i++)
-							if (editcombo.getItemAt(i).no.equals(t.getValueAt(t.getSelectedRow(), 6)))
+							if (editcombo.getItemAt(i).getKey().equals(t.getValueAt(t.getSelectedRow(), 6)))
 								editcombo.setSelectedIndex(i);
 					}
 				}
