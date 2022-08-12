@@ -39,40 +39,40 @@ public class SignPage extends BasePage {
 		cc.add(btn("회원가입", a -> {
 			for (var t : txt) {
 				if (t.getText().isEmpty()) {
-					eMsg("빈칸이 있습니다.");
+					emsg("빈칸이 있습니다.");
 					return;
 				}
 			}
 
 			if (getRow("select * from user where id = ?", txt[1]) != null) {
-				eMsg("아이디가 중복되었습니다.");
+				emsg("아이디가 중복되었습니다.");
 				return;
 			}
 
 			if (!(txt[2].getText().matches(".*[a-zA-Z].*") && txt[2].getText().matches(".*[0-9].*")
 					&& txt[2].getText().matches(".*[!@#$].*")) || txt[2].getText().length() < 4) {
-				eMsg("비밀번호 형식이 일치하지 않습니다.");
+				emsg("비밀번호 형식이 일치하지 않습니다.");
 				return;
 			}
 
 			if (!txt[2].getText().equals(txt[3].getText())) {
-				eMsg("비밀번호가 일치하지 않습니다.");
+				emsg("비밀번호가 일치하지 않습니다.");
 				return;
 			}
 
 			if (!txt[4].getText().matches("^\\d{3}-\\d{4}-\\d{4}$")) {
-				eMsg("전화번호 형식이 잘못되었습니다.");
+				emsg("전화번호 형식이 잘못되었습니다.");
 				return;
 			}
 
 			if (!txt[5].getText().matches("^\\d{4}-\\d{2}-\\d{2}")) {
-				eMsg("생년월일 형식이 잘못되었습니다.");
+				emsg("생년월일 형식이 잘못되었습니다.");
 				return;
 			}
 
-			setRows("insert user values(0, ?,?,?,?,?,?)", txt[0].getText(), txt[1].getText(), txt[2].getText(),
+			execute("insert user values(0, ?,?,?,?,?,?)", txt[0].getText(), txt[1].getText(), txt[2].getText(),
 					txt[4].getText(), txt[5].getText(), ((Item) combo.getSelectedItem()).getKey());
-			iMsg("회원가입이 완료되었습니다.");
+			imsg("회원가입이 완료되었습니다.");
 			mf.swapPage(new LoginPage());
 		}));
 

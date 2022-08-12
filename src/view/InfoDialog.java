@@ -7,6 +7,8 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ import javax.swing.border.MatteBorder;
 public class InfoDialog extends JDialog {
 
 	ArrayList<Object> building;
-	SearchPage page;
+	Map page;
 	CardLayout pages;
 	JPanel info, reserv, c, s;
 	JTextField txt[] = { new JTextField(15), new JTextField(15), new JTextField(15) };
@@ -38,7 +40,6 @@ public class InfoDialog extends JDialog {
 			{ BasePage.lbl("전화번호", JLabel.LEFT, 15) }, { txt[1] }, { BasePage.lbl("백신", JLabel.LEFT, 15) },
 			{ combo[0] }, { BasePage.lbl("예약 날짜 및 시간", JLabel.LEFT, 15) }, { txt[2], combo[1] }, };
 	JButton btn;
-	boolean is시설 = false;
 
 	public InfoDialog(ArrayList<Object> building) {
 		this.building = building;
@@ -49,7 +50,7 @@ public class InfoDialog extends JDialog {
 		setDefaultCloseOperation(2);
 		setUndecorated(true);
 
-		page = (SearchPage) BasePage.mf.getContentPane().getComponent(0);
+		page = (Map) BasePage.mf.getContentPane().getComponent(0);
 
 		add(c = new JPanel(pages = new CardLayout()));
 		add(s = new JPanel(new GridLayout(1, 0, 5, 5)), "South");
@@ -65,44 +66,40 @@ public class InfoDialog extends JDialog {
 			}
 		}));
 
-		is시설 = BasePage.toInt(building.get(5)) == 0 || BasePage.toInt(building.get(5)) == 1;
-
-		if (is시설) {
-			s.add(BasePage.btn("예약하기", a -> {
-				if (!reserv.isVisible()) {
-					pages.show(c, "예약");
-					btn.setText("뒤로가기");
-				} else {
-					if (txt[2].getText().isEmpty()) {
-						BasePage.eMsg("날짜를 선택해주세요.");
-						return;
-					}
-
-					if (BasePage.toInt(BasePage.getRow("select count(*) from purchase where user = ?", BasePage.uno)
-							.get(0)) == 4) {
-						BasePage.eMsg("이미 모든 접종을 완료하셨습니다.");
-						return;
-					}
-
-					BasePage.setRows("insert purchase values(0,?,?,?,?,?)", BasePage.uno,
-							txt[2].getText() + " " + combo[1].getSelectedItem(), building.get(0),
-							combo[0].getSelectedIndex() + 1, BasePage.toInt(BasePage
-									.getRow("select count(*) from purchase where user = ?", BasePage.uno).get(0)));
-					var lbl = BasePage.lbl("예약이 완료되었습니다.", JLabel.LEFT);
-					var evtlbl = BasePage.hyplbl("<html><font color = rgb(0,123,255)>지도에서 보기", JLabel.LEFT, 13, (e) -> {
-						JOptionPane.getRootFrame().dispose();
-						page.gotoCenter(BasePage.toInt(building.get(6)), BasePage.toInt(building.get(7)));
-					});
-
-					JPanel temp = new JPanel(new GridLayout(0, 1));
-					temp.add(lbl);
-					temp.add(evtlbl);
-
-					JOptionPane.showMessageDialog(this, temp, "확인", JOptionPane.INFORMATION_MESSAGE);
-					dispose();
+		s.add(BasePage.btn("예약하기", a -> {
+			if (!reserv.isVisible()) {
+				pages.show(c, "예약");
+				btn.setText("뒤로가기");
+			} else {
+				if (txt[2].getText().isEmpty()) {
+					BasePage.emsg("날짜를 선택해주세요.");
+					return;
 				}
-			}));
-		}
+
+				if (BasePage.cint(
+						BasePage.getRow("select count(*) from purchase where user = ?", BasePage.uno).get(0)) == 4) {
+					BasePage.emsg("이미 모든 접종을 완료하셨습니다.");
+					return;
+				}
+
+				BasePage.execute("insert purchase values(0,?,?,?,?,?)", BasePage.uno,
+						txt[2].getText() + " " + combo[1].getSelectedItem(), building.get(0),
+						combo[0].getSelectedIndex() + 1, BasePage.cint(
+								BasePage.getRow("select count(*) from purchase where user = ?", BasePage.uno).get(0)));
+				var lbl = BasePage.lbl("예약이 완료되었습니다.", JLabel.LEFT);
+				var evtlbl = BasePage.hyplbl("<html><font color = rgb(0,123,255)>지도에서 보기", JLabel.LEFT, 13, (e) -> {
+					JOptionPane.getRootFrame().dispose();
+					page.center(BasePage.cint(building.get(6)), BasePage.cint(building.get(7)));
+				});
+
+				JPanel temp = new JPanel(new GridLayout(0, 1));
+				temp.add(lbl);
+				temp.add(evtlbl);
+
+				JOptionPane.showMessageDialog(this, temp, "확인", JOptionPane.INFORMATION_MESSAGE);
+				dispose();
+			}
+		}));
 
 		for (var i : jc) {
 			if (i.length > 1) {
@@ -129,8 +126,10 @@ public class InfoDialog extends JDialog {
 		txt[0].setRequestFocusEnabled(false);
 		txt[1].setRequestFocusEnabled(false);
 
-		var start = LocalTime.parse(building.get(2).toString(), DateTimeFormatter.ofPattern("HH:mm:ss"));
-		var end = LocalTime.parse(building.get(3).toString(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+		var start = LocalDateTime.of(LocalDate.now(),
+				LocalTime.parse(building.get(2).toString(), DateTimeFormatter.ofPattern("HH:mm:ss")));
+		var end = LocalDateTime.of(LocalDate.now(),
+				LocalTime.parse(building.get(3).toString(), DateTimeFormatter.ofPattern("HH:mm:ss")));
 
 		for (var t = start; t.isBefore(end); t = t.plusMinutes(30))
 			combo[1].addItem(t.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
@@ -178,7 +177,7 @@ public class InfoDialog extends JDialog {
 		area.setBorder(new LineBorder(Color.BLACK));
 
 		if (rate != null) {
-			for (int i = 0; i < BasePage.toInt(rate.get(2)); i++)
+			for (int i = 0; i < BasePage.cint(rate.get(2)); i++)
 				stars[i].setForeground(Color.RED);
 			area.setText(rate.get(4) + "");
 		}
@@ -190,21 +189,21 @@ public class InfoDialog extends JDialog {
 		temp2.setAlignmentX(LEFT_ALIGNMENT);
 
 		temp2.add(BasePage.btn(rate == null ? "후기 작성하기" : "후기 수정하기", a -> {
-			if (BasePage.toInt(ratelbl.getText().split("/")[0]) == 0) {
-				BasePage.eMsg("평점을 선택해주세요.");
+			if (BasePage.cint(ratelbl.getText().split("/")[0]) == 0) {
+				BasePage.emsg("평점을 선택해주세요.");
 				return;
 			}
 
 			if (a.getActionCommand().equals("후기 작성하기")) {
-				BasePage.setRows("insert rate values(0, ?, ?, ?, ?)", building.get(0), ratelbl.getText().split("/")[0],
+				BasePage.execute("insert rate values(0, ?, ?, ?, ?)", building.get(0), ratelbl.getText().split("/")[0],
 						BasePage.uno, area.getText());
-				BasePage.iMsg("작성이 완료되었습니다.");
+				BasePage.imsg("작성이 완료되었습니다.");
 			} else {
-				BasePage.setRows("update rate set rate = ?, review = ?, where no = ?", ratelbl.getText().split("/")[0],
+				BasePage.execute("update rate set rate = ?, review = ?, where no = ?", ratelbl.getText().split("/")[0],
 						area.getText(), building.get(0));
-				BasePage.iMsg("수정이 완료되었습니다.");
+				BasePage.imsg("수정이 완료되었습니다.");
 			}
-			if (!page.search.getText().isEmpty())
+			if (!page.txt.getText().isEmpty())
 				page.search();
 
 			info_ui();
@@ -215,9 +214,9 @@ public class InfoDialog extends JDialog {
 
 		if (rate != null) {
 			temp2.add(BasePage.btn("삭제", a -> {
-				BasePage.setRows("delete from rate where no = ?", rate.get(0));
+				BasePage.execute("delete from rate where no = ?", rate.get(0));
 
-				if (!page.search.getText().isEmpty())
+				if (!page.txt.getText().isEmpty())
 					page.search();
 				info_ui();
 			}));
@@ -240,7 +239,7 @@ public class InfoDialog extends JDialog {
 
 			for (int i = 0; i < 5; i++) {
 				var lbl = new JLabel("★", JLabel.CENTER);
-				lbl.setForeground(i < BasePage.toInt(r.get(2)) ? Color.RED : Color.lightGray);
+				lbl.setForeground(i < BasePage.cint(r.get(2)) ? Color.RED : Color.lightGray);
 				tempn.add(lbl);
 			}
 

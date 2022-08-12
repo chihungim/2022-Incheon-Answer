@@ -48,12 +48,12 @@ public class LoginPage extends BasePage {
 		cs.add(hyplbl("처음이십니까?", JLabel.LEFT, 15, e -> mf.swapPage(new SignPage())));
 		cs.add(btn("로그인", a -> {
 			if (txt[0].getText().isEmpty() || txt[1].getText().isEmpty()) {
-				eMsg("빈칸이 있습니다.");
+				emsg("빈칸이 있습니다.");
 				return;
 			}
 
 			if (!flag) {
-				eMsg("리캡챠를 확인해주세요.");
+				emsg("리캡챠를 확인해주세요.");
 				return;
 			}
 
@@ -63,7 +63,7 @@ public class LoginPage extends BasePage {
 			}
 
 			if (getRow("select * from user where id = ? and pw = ?", txt[0].getText(), txt[1].getText()) == null) {
-				eMsg("아이디 또는 비밀번호가 잘못되었습니다.");
+				emsg("아이디 또는 비밀번호가 잘못되었습니다.");
 				return;
 			}
 

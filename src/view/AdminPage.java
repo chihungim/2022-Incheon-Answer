@@ -10,6 +10,9 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Arc2D;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -20,7 +23,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -92,20 +94,20 @@ public class AdminPage extends BasePage {
 				s.add(btn(bcap, a -> {
 					if (a.getActionCommand().equals("수정")) {
 						for (int i = 0; i < t.getColumnCount(); i++) {
-							setRows("update user set name = ? , pw = ?, phone = ?, birth = ?, building =? where no =?",
+							execute("update user set name = ? , pw = ?, phone = ?, birth = ?, building =? where no =?",
 									t.getValueAt(i, 1), t.getValueAt(i, 3), t.getValueAt(i, 4), t.getValueAt(i, 5),
 									((Item) t.getValueAt(i, 6)).getKey(), t.getValueAt(i, 0));
 						}
 
-						iMsg("수정이 완료되었습니다.");
+						imsg("수정이 완료되었습니다.");
 					} else {
 						if (t.getSelectedRow() == -1) {
-							eMsg("삭제할 행을 선택해주세요.");
+							emsg("삭제할 행을 선택해주세요.");
 							return;
 						}
 
-						setRows("delete from user where no = ?", t.getValueAt(t.getSelectedRow(), 0));
-						iMsg("삭제가 완료되었습니다.");
+						execute("delete from user where no = ?", t.getValueAt(t.getSelectedRow(), 0));
+						imsg("삭제가 완료되었습니다.");
 						data();
 					}
 				}));
@@ -161,12 +163,12 @@ public class AdminPage extends BasePage {
 			add(s, "South");
 			s.add(btn("저장", a -> {
 				for (int i = 0; i < t.getColumnCount(); i++) {
-					setRows("update building set name = ?, info = ?, open =?, close = ? where no = ?",
+					execute("update building set name = ?, info = ?, open =?, close = ? where no = ?",
 							t.getValueAt(i, 0), t.getValueAt(i, 2), t.getValueAt(i, 3), t.getValueAt(i, 4),
 							t.getValueAt(i, 6));
 				}
 
-				iMsg("저장이 완료되었습니다.");
+				imsg("저장이 완료되었습니다.");
 			}));
 			t.setRowHeight(80);
 			t.getColumn("번호").setMinWidth(0);
@@ -179,7 +181,7 @@ public class AdminPage extends BasePage {
 			var rs = getRows("select name, type, info, open, close, img,no from building where type <> 3");
 
 			for (var r : rs) {
-				r.set(1, "진료소,병원,거주지".split(",")[toInt(r.get(1))]);
+				r.set(1, "진료소,병원,거주지".split(",")[cint(r.get(1))]);
 				r.set(5, new JLabel(toIcon(r.get(5), 120, 80)));
 			}
 
@@ -210,13 +212,13 @@ public class AdminPage extends BasePage {
 					var g2 = (Graphics2D) g;
 					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					var rs = getRows(sql[combo.getSelectedIndex()]);
-					int sum = rs.stream().mapToInt(a -> toInt(a.get(0))).sum();
+					int sum = rs.stream().mapToInt(a -> cint(a.get(0))).sum();
 					double sarc = 90;
 					int h = 250;
 					for (int i = 0; i < rs.size(); i++) {
 						var a2d = new Arc2D.Float(Arc2D.PIE);
 						a2d.setFrame(150, 100, 300, 300);
-						var arc = ((double) toInt(rs.get(i).get(0)) / sum) * 360 * -1;
+						var arc = ((double) cint(rs.get(i).get(0)) / sum) * 360 * -1;
 						a2d.setAngleStart(sarc);
 						a2d.setAngleExtent(arc);
 						g2.setColor(col[i]);
@@ -244,5 +246,16 @@ public class AdminPage extends BasePage {
 
 	public static void main(String[] args) {
 		mf.swapPage(new AdminPage());
+		for (int i = 1; i <= 23; i++) {
+			for (int j = 0; j <= 59; j++) {
+				var ldt = LocalDateTime.of(LocalDate.of(2022, 8, 30), LocalTime.of(i, j));
+				var rs = BasePage.getRows(
+						"select count(*), b.name from purchase p, building b where p.building = b.no and b.type = 1 and date <= ? group by p.building order by count(*) desc",
+						ldt);
+				System.out.println(ldt);
+				System.out.println(rs);
+			}
+		}
+
 	}
 }

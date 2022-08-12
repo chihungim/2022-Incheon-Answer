@@ -15,19 +15,17 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.plaf.ColorUIResource;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -94,7 +92,7 @@ public class BasePage extends JPanel {
 			return getRows(sql, objs).get(0);
 	}
 
-	public static void setRows(String sql, Object... objs) {
+	public static void execute(String sql, Object... objs) {
 		var col = new ArrayList<ArrayList<Object>>();
 
 		try {
@@ -115,11 +113,11 @@ public class BasePage extends JPanel {
 		super(new BorderLayout());
 	}
 
-	public static void eMsg(String msg) {
+	public static void emsg(String msg) {
 		JOptionPane.showMessageDialog(null, msg, "경고", 0);
 	}
 
-	public static void iMsg(String msg) {
+	public static void imsg(String msg) {
 		JOptionPane.showMessageDialog(null, msg, "정보", 1);
 	}
 
@@ -129,29 +127,25 @@ public class BasePage extends JPanel {
 		return l;
 	}
 
-	interface invoker {
-		void run(MouseEvent e);
-	}
-
 	public static JLabel lbl(String t, int al, int s) {
 		JLabel l = new JLabel(t, al);
 		l.setFont(new Font("맑은 고딕", Font.BOLD, s));
 		return l;
 	}
 
-	public static JLabel lbl(String t, int al, int s, invoker i) {
+	public static JLabel lbl(String t, int al, int s, Consumer<MouseEvent> con) {
 		JLabel l = new JLabel(t, al);
 		l.setFont(new Font("맑은 고딕", Font.BOLD, s));
 		l.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				i.run(e);
+				con.accept(e);
 			}
 		});
 		return l;
 	}
 
-	public static JLabel hyplbl(String text, int al, int s, invoker r) {
+	public static JLabel hyplbl(String text, int al, int s, Consumer<MouseEvent> con) {
 		var l = new JLabel(text, al);
 		l.setFont(new Font("맑은 고딕", Font.BOLD, s));
 		l.setForeground(Color.ORANGE);
@@ -160,7 +154,7 @@ public class BasePage extends JPanel {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (e.getButton() == 1)
-					r.run(e);
+					con.accept(e);
 			}
 
 			@Override
@@ -248,7 +242,7 @@ public class BasePage extends JPanel {
 		return jc;
 	}
 
-	public static int toInt(Object objs) {
+	public static int cint(Object objs) {
 		return Integer.parseInt(objs.toString());
 	}
 }

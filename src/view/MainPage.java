@@ -17,11 +17,10 @@ import javax.swing.border.EmptyBorder;
 public class MainPage extends BasePage {
 
 	JPanel chart;
-	Thread thread;
 
-	double totalValue = toInt(getRows("select count(*) from user").get(0).get(0));
+	double totalValue = cint(getRows("select count(*) from user").get(0).get(0));
 
-	int max = toInt(getRows(
+	int max = cint(getRows(
 			"select count(*), month(date) from purchase where month(date) >= 1 and month(date) <= month(now()) group by month(date) order by count(*) desc")
 					.get(0).get(0)),
 			curHeight = 0, maxHeight = 250;
@@ -60,7 +59,7 @@ public class MainPage extends BasePage {
 				g2.setColor(Color.GRAY);
 				g2.drawString("월간 접종자 추이", 5, 20);
 				for (int i = 0; i < lst.size(); i++) {
-					var myHeight = (int) (toInt(lst.get(i).get(1)) / (double) max * maxHeight);
+					var myHeight = (int) (cint(lst.get(i).get(1)) / (double) max * maxHeight);
 					g2.setColor(Color.GRAY);
 					g2.drawString(lst.get(i).get(1).toString(), 135 + i * 120, 320 - myHeight);
 					g2.drawString(lst.get(i).get(0).toString() + "월", 130 + i * 120, 350);
@@ -98,7 +97,7 @@ public class MainPage extends BasePage {
 			s.add(btn(cap, a -> {
 				if (a.getActionCommand().equals("길찾기")) {
 					try {
-						mf.swapPage(new SearchPage());
+						mf.swapPage(new Map());
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

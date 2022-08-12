@@ -87,12 +87,12 @@ public class ReCapcha extends JDialog {
 
 		s.add(BasePage.btn("확인", a -> {
 			if (selectSet.isEmpty()) {
-				BasePage.eMsg("선택을 하세요");
+				BasePage.emsg("선택을 하세요");
 				return;
 			}
 
 			if (!(ansSet.containsAll(ansSet) && selectSet.containsAll(ansSet))) {
-				BasePage.eMsg("틀렸습니다.");
+				BasePage.emsg("틀렸습니다.");
 				crtImgList();
 				return;
 			}
